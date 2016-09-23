@@ -5,8 +5,11 @@ use Getopt::Long;
 
 #sub read_config {
 
-my $file = $ARGV[0] or die "Need to get config file on the command line\n";
-my $debug = $ARGV[1];
+#my $xfile = $ARGV[0] or die "Need to get config file on the command line\n";
+#my $xdebug = $ARGV[3];
+#my $xmsg = $ARGV[1];
+
+#my $xmemory = $ARGV[2];
 
 #my $file = 'kconfig';
 #GetOptions ('config:s' => \$file);
@@ -14,6 +17,20 @@ my $debug = $ARGV[1];
 #my $debug=0;
 #GetOptions ('debug:i' => \$debug);
 
+#sub read_file {
+#    my %args=@_;
+#    my %defaults=( my $file=>'kconfig',  my $mem=>'kmem', my $debug=>0);
+#    foreach (keys %defaults) {
+        #defined ($args{$_})  || {$args{$_}= $defaults{$_}} ;
+#        defined($args{$_}) || ($args{$_}=$default{$_});
+#        print $_ ," - ",$args {$_},"\n";
+#    }
+#}
+
+my ($file,$mem,$debug) = @_;
+$say ||= "kconfig";
+$to ||= "kmem";
+$debug||=1
 
 
 open(my $data, '<', $file) or die "Could not open '$file' $!\n";
@@ -53,12 +70,12 @@ if ($debug) {
     }
 }
 
-#return %HoH;
+return %HoH;
 
-#}
+}
 
 #read_config(config2);
-
+&readFile (debug=>1);
 
 
 
