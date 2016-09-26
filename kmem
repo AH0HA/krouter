@@ -1,6 +1,6 @@
-event_a1_x1: idate=20160923  icnt=6
-event_a1_x2: idate=20160923  icnt=5 
-event_b2_y1: idate=20160923  icnt=4 
-event_b2_y2: idate=20160923  icnt=3 
-event_c3_z1: idate=20160923  icnt=2 
-event_c3_z2: idate=20160923  icnt=1
+20160926: event_a1_x1=6
+20160926: event_a1_x2=5
+20160926: event_b2_y1=4
+20160926: event_b2_y2=3
+20160926: event_c3_z1=2
+20160926: event_c3_z2=1
