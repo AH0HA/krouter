@@ -5,6 +5,10 @@ use Getopt::Long;
 use POSIX qw(strftime);
 use Fcntl qw(:flock);
 
+my $LOCK_EXCLUSIVE         = 2;
+my $UNLOCK                 = 8;
+my $LOCK_SHARED            = 1;
+my $LOCK_NONBLOCKING       = 4;
 
 #getDate return date in string format 20161010
 sub getDate{
@@ -22,38 +26,40 @@ return %date_rec;
 #file2hash : read the file in k<file_name> e.g.=kconfig &  kmem  into hash table
 #
 #my $MAX_FILE_TRY = 20;
-my $sleep_time = 2;
-my $XLOCKFILE ="kmem.lock";
+#my $sleep_time = 1;
+my $XLOCKFILE ="./kmem.lock";
+
+
 
 sub file2hash {
     my ($file) = @_;
-    my $xfh;
+    #my $xfh;
 
 
 
-    for (;;)
-    {
+    #for (;;)
+    #{
     # See if lock Status has changed.
-         my $lock_status=check_lock_exists();
+    #     my $lock_status=check_lock_exists();
 
-           if ($lock_status == 0)
-           {
-               print "-----Lock  exist,sleeping for $sleep_time------\n";
-              # lock Status Changed.
-              # Sleep for 10 to Check the Lock status again
-               sleep($sleep_time);
-           }
-           else
-           {
-              $xfh = get_lock();
-              last;
-           }
-    }#end for
+    #       if ($lock_status == 0)
+    #       {
+    #           print "-----Lock  exist,sleeping for $sleep_time------\n";
+    #          # lock Status Changed.
+    #          # Sleep for 10 to Check the Lock status again
+    #           sleep($sleep_time);
+    #       }
+    #       else
+    #       {
+    #          $xfh = get_lock();
+    #          last;
+    #       }
+    #}#end for
 
 #http://jagadesh4java.blogspot.com/2014/05/perl-file-locking-using-flock.html#sthash.DHnEkfHD.dpuf
 
-
 open(my $data, '<', $file) or die "Could not open '$file' $!\n";
+flock($data, $LOCK_EXCLUSIVE);
 
 my %HoH;
 my $key;
@@ -76,7 +82,8 @@ while ( <$data>) {
     }
 }
 
-    release_lock(\$xfh);
+    #release_lock(\$xfh);
+    close($data);
     return %HoH;
 
 }
@@ -89,10 +96,12 @@ while ( <$data>) {
 #print out hash table in k<file_name> format
 #
 sub hash2print{
-    (my $hashref,my $debug,my $restTime) = @_;
+    #(my $hashref,my $debug,my $restTime) = @_;
+    (my $hashref,my $debug) = @_;
     my %HoH = %$hashref;
 
-    sleep($restTime);
+    #sleep($restTime);
+    #print "restTime=$restTime\n";
 
     my $family;
     my $role;
@@ -119,6 +128,7 @@ sub hash2print{
 sub dispatch{
 
         my $event= shift;
+        my $restTime = shift ||0;
         my $debug = shift||0;
         my $mail_prog = shift || "mailx";
         my $config_f = shift || "kconfig";
@@ -131,6 +141,9 @@ sub dispatch{
         my $email2_cnt_tag="email2_cnt";
 
         my %h2=&file2hash($config_f);
+
+        sleep($restTime);
+
         my %m2=file2hash($memory_f);
 
         my %today=&getDate();
@@ -156,12 +169,21 @@ sub dispatch{
         my $xemail2_cnt = $h2{$event}{$email2_cnt_tag};
 
         #initialize today_event_cnt is not happened today
-        if (exists $m2{$event}{$today_idx}) {
-            $m2{$event}{$today_idx} = $m2{$event}{$today_idx} +1;
-            $m2{$event}{$today_ext} = 1;
+        #if (exists $m2{$event}{$today_idx}) {
+        #    $m2{$event}{$today_idx} = $m2{$event}{$today_idx} +1;
+        #    $m2{$event}{$today_ext} = 1;
+        #}else{
+        #     $m2{$event}{$today_idx} = 1;
+        #     $m2{$event}{$today_ext} = 1;
+        #}
+
+        my $idx_tag = "_";
+        if (exists $m2{$today_idx}{$event}) {
+            $m2{$today_idx}{$event} = $m2{$today_idx}{$event} +1;
+            $m2{$today_idx}{$event.$idx_tag.$today_ext} = 1;
         }else{
-             $m2{$event}{$today_idx} = 1;
-             $m2{$event}{$today_ext} = 1;
+             $m2{$today_idx}{$event} = 1;
+             $m2{$today_idx}{$event.$idx_tag.$today_ext} = 1;
         }
 
 
@@ -177,11 +199,11 @@ sub dispatch{
         my $mail3_cmd_str = $mail_prog." -s ".$event." ".$xemail3;
 
 
-        if ($m2{$event}{$today_idx} >$xemail2_cnt){
+        if ($m2{$today_idx}{$event} >$xemail2_cnt){
 
             system "$mail3_cmd_str";
 
-        }elsif($m2{$event}{$today_idx} >$xemail1_cnt){
+        }elsif($m2{$today_idx}{$event} >$xemail1_cnt){
 
             system "$mail2_cmd_str";
 
@@ -195,7 +217,7 @@ sub dispatch{
         # might need mutex protection ??
         #
         open (my $mymem, '>', $memory_f);
-
+        flock($mymem,$LOCK_EXCLUSIVE);
         # select new filehandle
         select $mymem;
         hash2print(\%m2);
@@ -231,10 +253,7 @@ sub check_lock_exists() {
 
 
 
-my $LOCK_EXCLUSIVE         = 2;
-my $UNLOCK                 = 8;
-my $LOCK_SHARED            = 1;
-my $LOCK_NONBLOCKING       = 4;
+
 #http://jagadesh4java.blogspot.com/2014/05/perl-file-locking-using-flock.html#sthash.AdUHHYMI.dpuf
 
 sub get_lock()    {
@@ -314,13 +333,15 @@ print "$sevent\n";
 #qd test
 #my %hh2;
 #my %mm2;
-if ($stime=="2016"){
-     my %hh2=&file2hash("kconfig");
-    hash2print(\%hh2,0,5);
+if ($sevent eq "event_a1_x1"){
+     #my %hh2=&file2hash("kconfig");
+    #hash2print(\%hh2,0,$stime);
+    &dispatch($sevent,$stime,0,"echo");
 }
-elsif($stime=="2017"){
-    my %mm2=&file2hash("kmem");
-    hash2print(\%mm2,0,5);
+elsif($sevent eq "event_c3_z2"){
+    #my %mm2=&file2hash("kmem");
+    #hash2print(\%mm2,0,$stime);
+   &dispatch($sevent,$stime,0,"echo");
 }
 #}
 #hash2print(\%m2,0,5);
