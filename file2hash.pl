@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Getopt::Long;
 use POSIX qw(strftime);
+use Fcntl qw(:flock);
 
 
 #getDate return date in string format 20161010
@@ -20,8 +21,37 @@ return %date_rec;
 #
 #file2hash : read the file in k<file_name> e.g.=kconfig &  kmem  into hash table
 #
+#my $MAX_FILE_TRY = 20;
+my $sleep_time = 2;
+my $XLOCKFILE ="kmem.lock";
+
 sub file2hash {
     my ($file) = @_;
+    my $xfh;
+
+
+
+    for (;;)
+    {
+    # See if lock Status has changed.
+         my $lock_status=check_lock_exists();
+
+           if ($lock_status == 0)
+           {
+               print "-----Lock  exist,sleeping for $sleep_time------\n";
+              # lock Status Changed.
+              # Sleep for 10 to Check the Lock status again
+               sleep($sleep_time);
+           }
+           else
+           {
+              $xfh = get_lock();
+              last;
+           }
+    }#end for
+
+#http://jagadesh4java.blogspot.com/2014/05/perl-file-locking-using-flock.html#sthash.DHnEkfHD.dpuf
+
 
 open(my $data, '<', $file) or die "Could not open '$file' $!\n";
 
@@ -46,6 +76,7 @@ while ( <$data>) {
     }
 }
 
+    release_lock(\$xfh);
     return %HoH;
 
 }
@@ -58,10 +89,10 @@ while ( <$data>) {
 #print out hash table in k<file_name> format
 #
 sub hash2print{
-    (my $hashref,my $debug) = @_;
+    (my $hashref,my $debug,my $restTime) = @_;
     my %HoH = %$hashref;
 
-
+    sleep($restTime);
 
     my $family;
     my $role;
@@ -181,13 +212,121 @@ sub dispatch{
 
 
 
+#http://jagadesh4java.blogspot.com/2014/05/perl-file-locking-using-flock.html
+#Sub Routine to Check Whether the Lock File Exists
+sub check_lock_exists() {
+
+
+   my $lock_file = shift || $XLOCKFILE;
+   my $status;
+   if (-e $lock_file) {
+        $status = 0;
+    } else {
+        $status  = 1;
+    }
+   return $status;
+ }
+
+#end check_lock_exists
+
+
+
+my $LOCK_EXCLUSIVE         = 2;
+my $UNLOCK                 = 8;
+my $LOCK_SHARED            = 1;
+my $LOCK_NONBLOCKING       = 4;
+#http://jagadesh4java.blogspot.com/2014/05/perl-file-locking-using-flock.html#sthash.AdUHHYMI.dpuf
+
+sub get_lock()    {
+
+
+     my $lock_file = shift || "kmem.lock";
+     open (my $fh, ">>$lock_file") || die "problem opening lock File\n";
+     flock $fh, $LOCK_EXCLUSIVE;
+     return $fh;
+     #print "----Obtained Lock----\n";
+
+     #sleep 20;
+
+     #flock FILE, $UNLOCK;
+     #close(FILE);
+     #unlink($lock_file) or die "can't remove lockfile: $lockfile ($!)";
+
+}#end get_lock
+
+sub release_lock(){
+    my $fh = shift;
+    my $lock_file = shift || $XLOCKFILE;
+    flock $$fh, $UNLOCK;
+    close($$fh) or die "Could not write '$lock_file' - $!";
+    unlink($lock_file) or die "can't remove lockfile: $lock_file ($!)";
+}#end release_lock
+#http://jagadesh4java.blogspot.com/2014/05/perl-file-locking-using-flock.html#sthash.AdUHHYMI.dpuf
+
+
+#http://www.perlmonks.org/?node_id=886569
+#
+#mimac mailx flag
+#
+
+#sub main(){
+
+my $stime;
+my $sevent;
+my $result = GetOptions (
+  "s=s" => \$sevent,
+  "t:s"   => \$stime,
+  #"optlist=s" => \@list,
+);
+print "$stime\n";
+print "$sevent\n";
+#}
+#my( @opt_s, @opt_t );
+
+#GetOptions(
+#           's=s{1}' => \@opt_s,
+#           't=s{1}' => \@opt_t,
+#          );
+
+#say "@opt_s";
+#say "@opt_t";
+
+
+#my %options = ();
+#GetOptions (
+#             "s=s" => \$options{'a'},
+#             "t:s" => \$options{'b'},
+             #"z!"  => \$options{'z'},
+#            );
+
+#my $sevent = '';
+#GetOptions ('-s=s' => \$sevent);#'=' is required
+#print "$sevent\n";
+#my $stime = '';
+#GetOptions ('-t:s' => \$stime);#':' is optional
+#print "$stime\n";
+#my $sdump = '';
+#GetOptions ('-d:s' => \$sdump);#':' is optional
+#print "$sdump\n";
+
 #my %h2=&file2hash("kconfig");
-#my %m2=&file2hash("kmem");
-#hash2print(\%h2);
-#hash2print(\%m2);
+
+#qd test
+#my %hh2;
+#my %mm2;
+if ($stime=="2016"){
+     my %hh2=&file2hash("kconfig");
+    hash2print(\%hh2,0,5);
+}
+elsif($stime=="2017"){
+    my %mm2=&file2hash("kmem");
+    hash2print(\%mm2,0,5);
+}
+#}
+#hash2print(\%m2,0,5);
 #print &getDate();
 #my $xcnt= &dispatch("event_c3_z2");
-&dispatch("event_c3_z2",0,"echo");
+#&dispatch("event_c3_z2",0,"echo");
 #&dispatch("event_c3_z2",1);
 #print $xcnt;
 
