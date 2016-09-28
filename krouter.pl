@@ -42,28 +42,6 @@ sub file2hash {
     #my $xfh;
 
 
-
-    #for (;;)
-    #{
-    # See if lock Status has changed.
-    #     my $lock_status=check_lock_exists();
-
-    #       if ($lock_status == 0)
-    #       {
-    #           print "-----Lock  exist,sleeping for $sleep_time------\n";
-    #          # lock Status Changed.
-    #          # Sleep for 10 to Check the Lock status again
-    #           sleep($sleep_time);
-    #       }
-    #       else
-    #       {
-    #          $xfh = get_lock();
-    #          last;
-    #       }
-    #}#end for
-
-#http://jagadesh4java.blogspot.com/2014/05/perl-file-locking-using-flock.html#sthash.DHnEkfHD.dpuf
-
 open(my $data, '<', $file) or die "Could not open '$file' $!\n";
 flock($data, $LOCK_EXCLUSIVE);
 
@@ -148,9 +126,8 @@ sub dispatch{
 
         my %h2=&file2hash($config_f);
 
-        sleep($restTime);
-
         my %m2=file2hash($memory_f);
+
 
         my %today=&getDate();
         my $today_idx = $today{$date_short_tag};
@@ -221,6 +198,7 @@ sub dispatch{
         # select new filehandle
         select $mymem;
         hash2print(\%m2);
+        sleep($restTime);
         close $mymem;
         #hash2priint(\%m2);
         #open my $rm3d_fh, '>', $memory_f or die "...$!";

@@ -1,6 +1,0 @@
-event_a1_x1: email1=xx1@gmail.com email2=yy1@gmail.com email1_cnt=6
-event_a1_x2: email1=xx2@gmail.com email2=yy2@gmail.com email1_cnt=5 
-event_b2_y1: email1=xx3@gmail.com email2=yy3@gmail.com email1_cnt=4 
-event_b2_y2: email1=xx4@gmail.com email2=yy4@gmail.com email1_cnt=3 
-event_c3_z1: email1=xx5@gmail.com email2=yy5@gmail.com email1_cnt=2 
-event_c3_z2: email1=xx6@gmail.com email2=yy6@gmail.com email1_cnt=1
