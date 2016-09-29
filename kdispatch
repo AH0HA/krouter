@@ -49,7 +49,8 @@ sub main {
     my $mfile;
     my $config_default="kconfig";
     my $memory_default="kmem";
-    
+    #my $event_sep="|";
+    my $event_sep="|";
     my $result = GetOptions (
         "c:s" => \$cfile,
         #"m:s"   => \$mfile,
@@ -94,7 +95,12 @@ sub main {
 
       
     foreach my $esub (@event_subject) {
-     $all_event = $all_event.$esub;     
+     #$all_event = $all_event.$event_sep.$esub;
+     #if (length $all_event == 0 ) {
+     #$all_event = " ";
+     #}
+     #all_event = $all_event.$esub;     
+     $all_event = $all_event.$event_sep.$esub;
     }
     
     print "all_event=$all_event\n";
