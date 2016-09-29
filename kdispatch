@@ -1,0 +1,109 @@
+#!/usr/bin/perl
+
+=head1 NAME
+
+krouter - kdispatch program
+
+=head1 SYNOPSIS
+
+    kdispatch [OPTION]... <Event_Subject>...
+
+    -c file
+            config file for kDispatch. Default kconfig
+    -m file
+            memory file for kDispatch. Default kmem 
+    --help       
+            print this help message
+
+Examples:
+
+    kdispatch centtstdb_BACKUP_FAIL
+
+=head1 DESCRIPTION
+
+This is a dispatch router for paging support personals.
+
+=head1 AUTHOR
+
+nericka@gmail.com
+
+=cut
+
+use strict;
+use warnings;
+
+use Getopt::Long qw(:config auto_help);
+use Pod::Usage;
+
+#exit main();
+
+main();
+
+
+sub main {
+
+    # Argument parsing
+    my $verbose;
+    my $all_event;
+    my $cfile;
+    my $mfile;
+    my $config_default="kconfig";
+    my $memory_default="kmem";
+    
+    my $result = GetOptions (
+        "c:s" => \$cfile,
+        #"m:s"   => \$mfile,
+        'verbose' => \$verbose,
+        #"optlist=s" => \@list,
+        ) or pod2usage(1);
+        
+
+        
+        pod2usage(1) unless @ARGV;
+    
+    #GetOptions(
+    #	'verbose'  => \$verbose,
+    #	'c' => \$zconfig,
+    #	'm'=> \$zmemory,
+    #) or pod2usage(1);
+    #pod2usage(1) unless @ARGV;
+
+    my (@event_subject) = @ARGV;
+  
+  if (defined $cfile && length $cfile > 0) {
+    # do something with $name
+        if (-r $cfile) {
+    		print "Using config file $cfile\n" if $verbose;
+    		#$cfile=$zconfig;
+    		
+    	}else{
+    	    die "Cannot read $cfile\n";
+    	}
+}else
+{
+  $cfile=$config_default;
+        if (-r $cfile) {
+    		print "Using config file $cfile\n" if $verbose;
+    		#$cfile=$zconfig;
+    		
+    	}else{
+    	    die "Cannot read $cfile\n";
+    	}  
+  
+}
+
+      
+    foreach my $esub (@event_subject) {
+     $all_event = $all_event.$esub;     
+    }
+    
+    print "all_event=$all_event\n";
+    
+     print "cfile=$cfile\n";
+        #print "mfile=$mfile\n";
+    
+        
+    	
+
+    #return 0;
+}# end main
