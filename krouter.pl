@@ -9,9 +9,16 @@ my $LOCK_EXCLUSIVE         = 2;
 my $UNLOCK                 = 8;
 my $LOCK_SHARED            = 1;
 my $LOCK_NONBLOCKING       = 4;
+
+#
+#can put in init file
+#
 my $default_mail="mailx";
 my $default_config="kconfig";
 my $default_mem="kmem";
+#
+#to-do put init in config file
+#
 my $date_long_tag="long";
 my $date_short_tag="short";
 
