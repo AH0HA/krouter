@@ -44,16 +44,15 @@ sub main {
 
     # Argument parsing
     my $verbose;
-    my $all_event;
+    my $all_event="|";
     my $cfile;
     my $mfile;
     my $config_default="kconfig";
     my $memory_default="kmem";
-    #my $event_sep="|";
     my $event_sep="|";
     my $result = GetOptions (
         "c:s" => \$cfile,
-        #"m:s"   => \$mfile,
+        "m:s"   => \$mfile,
         'verbose' => \$verbose,
         #"optlist=s" => \@list,
         ) or pod2usage(1);
@@ -94,19 +93,40 @@ sub main {
 }
 
       
+      
+  if (defined $mfile && length $mfile > 0) {
+    # do something with $name
+        if ((-r $mfile) and (-w $mfile)) {
+    		print "Using memory file $mfile\n" if $verbose;
+    		#$cfile=$zconfig;
+    		
+    	}else{
+    	    die "Cannot read/write $mfile\n";
+    	}
+}else
+{
+  $mfile=$memory_default;
+        if ((-r $mfile) && (-w $mfile )) {
+    		print "Using memory file $mfile\n" if $verbose;
+    		#$cfile=$zconfig;
+    		
+    	}else{
+    	    die "Cannot read/write $mfile\n";
+    	}  
+  
+}      
     foreach my $esub (@event_subject) {
      #$all_event = $all_event.$event_sep.$esub;
      #if (length $all_event == 0 ) {
      #$all_event = " ";
      #}
-     #all_event = $all_event.$esub;     
+     #$all_event = $all_event.$esub;     
      $all_event = $all_event.$event_sep.$esub;
     }
     
     print "all_event=$all_event\n";
-    
-     print "cfile=$cfile\n";
-        #print "mfile=$mfile\n";
+    print "cfile=$cfile\n";
+    print "mfile=$mfile\n";
     
         
     	
