@@ -2,22 +2,28 @@
 
 =head1 NAME
 
-krouter - kdispatch program
+krouter - krouter program
 
 =head1 SYNOPSIS
 
-    kdispatch [OPTION]... <Event_Subject>...
-
+    krouter -s <Event_Subject> [OPTION]
+    
+    -s <Event_Subject>
+            Event that will be route to concerning party.
     -c file
-            config file for kDispatch. Default kconfig
+            config file for krouter. Default kconfig
     -m file
-            memory file for kDispatch. Default kmem 
+            memory file for krouter. Default kmem 
+    -debug <1|0>
+            print out debug info.
+    -sleep <second>
+            sleep <second> between read/write call to config and memory files.
     --help       
             print this help message
 
 Examples:
 
-    kdispatch centtstdb_BACKUP_FAIL
+    krouter centtstdb_BACKUP_FAIL
 
 =head1 DESCRIPTION
 
@@ -59,21 +65,27 @@ sub main {
     # Argument parsing
     my $verbose;
     my $all_event="|";
+    my $event_alert_name;
     my $cfile;
     my $mfile;
     my $config_default="kconfig";
     my $memory_default="kmem";
     my $event_sep="|";
+    my $debug_flag=0;
+    my $sleep_time=0;
     my $result = GetOptions (
+        "s=s" => \$event_alert_name,
         "c:s" => \$cfile,
         "m:s"   => \$mfile,
+        "debug:i" => \$debug_flag,
+        "sleep:i" => \$sleep_time,
         'verbose' => \$verbose,
         #"optlist=s" => \@list,
         ) or pod2usage(1);
         
 
         
-        pod2usage(1) unless @ARGV;
+        #pod2usage(1) unless @ARGV;
     
     #GetOptions(
     #	'verbose'  => \$verbose,
@@ -141,14 +153,20 @@ sub main {
     #
     #to-do put debug and other init parameter in config file 
     #
-    my $debug=1;
-    if ($debug){
+    #my $debug=1;
+    if ($debug_flag){
         print "all_event=$all_event\n";
         print "cfile=$cfile\n";
         print "mfile=$mfile\n";
-        print "$event_subject[0]\n";
+        print "event_alert_name=$event_alert_name\n";
+        #print "$event_subject[0]\n";
     }
-    &dispatch($event_subject[0],0,0,"echo",$cfile,$mfile);    
+    
+    if (length $event_alert_name == 0){
+      pod2usage(1);
+    }
+    #&dispatch($event_subject[0],0,0,"echo",$cfile,$mfile);
+    &dispatch($event_alert_name,$debug_flag,$sleep_time,"echo",$cfile,$mfile);    
     	
 
     #return 0;
@@ -284,6 +302,14 @@ sub dispatch{
 
 
         my $xemail1 = $h2{$event}{$email1_tag};
+        
+        
+        if (defined $xemail1 && length $xemail1 > 0) {
+            #die "$event is not registered in config\n";
+        }else{
+                    die "$event is not registered in config\n";
+        }
+        
         my $xemail2 = $h2{$event}{$email2_tag};
         my $xemail1_cnt = $h2{$event}{$email1_cnt_tag};
         my $xemail3 = $h2{$event}{$email3_tag};

@@ -1,6 +1,0 @@
-event_a1_x1: email1=nericlau@gmail.com email1_cnt=8 email2=nericlau@gmail.com,kayama818@gmail.com email2_cnt=14 email3=nericlau@gmail.com,kayama818@gmail.com,greenyogi@gmail.com
-event_a1_x2: email1=nericlau@gmail.com email1_cnt=7 email2=nericlau@gmail.com,kayama818@gmail.com email2_cnt=13 email3=nericlau@gmail.com,kayama818@gmail.com,greenyogi@gmail.com
-event_b2_y1: email1=nericlau@gmail.com email1_cnt=6 email2=nericlau@gmail.com,kayama818@gmail.com email2_cnt=12 email3=nericlau@gmail.com,kayama818@gmail.com,greenyogi@gmail.com
-event_b2_y2: email1=nericlau@gmail.com email1_cnt=5 email2=nericlau@gmail.com,kayama818@gmail.com email2_cnt=11 email3=nericlau@gmail.com,kayama818@gmail.com,greenyogi@gmail.com
-event_c3_z1: email1=nericlau@gmail.com email1_cnt=4 email2=nericlau@gmail.com,kayama818@gmail.com email2_cnt=10 email3=nericlau@gmail.com,kayama818@gmail.com,greenyogi@gmail.com
-event_c3_z2: email1=nericlau@gmail.com email1_cnt=3 email2=nericlau@gmail.com,kayama818@gmail.com email2_cnt=9 email3=nericlau@gmail.com,kayama818@gmail.com,greenyogi@gmail.com
