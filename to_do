@@ -1,0 +1,11 @@
+2016/10/17 --done
+--modify dispatch so it takes a content file
+	--check if event_subject == content_file
+	--if yes then use cat "content_File" | mailx -s .....
+	  --else echo "event_subject" | ,mailx -s 
+
+
+2016/1018
+--merge code into github
+--zip Rays code and merge
+--modify the event in kconfig and Ray's for test

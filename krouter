@@ -9,21 +9,24 @@ krouter - krouter program
     krouter -s <Event_Subject> [OPTION]
     
     -s <Event_Subject>
-            Event that will be route to concerning party.
-    -c file
+            Event that will be route to concerning party. It will be sent as the Subject in email
+    -a <file>
+	    file that will be send as the message content. IF it is omitted, then <Event_Subject> will be used. Cannot be the same as <Event_Subject>
+    -c <file>
             config file for krouter. Default kconfig
-    -m file
+    -m <file>
             memory file for krouter. Default kmem 
     -debug <1|0>
-            print out debug info.
+            print out debug info. Default 0 which is no debug info
     -sleep <second>
-            sleep <second> between read/write call to config and memory files.
+            sleep <second> between read/write call to config  memory files.
+	    default 0 
     --help       
             print this help message
 
 Examples:
 
-    krouter centtstdb_BACKUP_FAIL
+    krouter -s centtstdb_BACKUP_FAIL
 
 =head1 DESCRIPTION
 
@@ -66,6 +69,8 @@ sub main {
     my $verbose;
     my $all_event="|";
     my $event_alert_name;
+    my $contentFile;
+    my $msgContent;
     my $cfile;
     my $mfile;
     my $config_default="kconfig";
@@ -75,6 +80,7 @@ sub main {
     my $sleep_time=0;
     my $result = GetOptions (
         "s=s" => \$event_alert_name,
+        "a:s" => \$contentFile,
         "c:s" => \$cfile,
         "m:s"   => \$mfile,
         "debug:i" => \$debug_flag,
@@ -96,6 +102,23 @@ sub main {
 
     my (@event_subject) = @ARGV;
   
+
+   if (defined $contentFile && length $contentFile > 0) {
+
+	if ( -r $contentFile ){
+		    		print "Using content file $contentFile\n" if $verbose;
+				$msgContent = $contentFile;
+        }else{
+
+		die "Cannot read $contentFile\n";
+        }
+
+   }else{
+
+		$msgContent = $event_alert_name;
+
+   }
+
   if (defined $cfile && length $cfile > 0) {
     # do something with $name
         if (-r $cfile) {
@@ -162,11 +185,15 @@ sub main {
         #print "$event_subject[0]\n";
     }
     
-    if (length $event_alert_name == 0){
-      pod2usage(1);
+    if (defined $event_alert_name && length $event_alert_name > 0){
+      #pod2usage(1);
+    }else{
+	pod2usage(1);
     }
     #&dispatch($event_subject[0],0,0,"echo",$cfile,$mfile);
-    &dispatch($event_alert_name,$debug_flag,$sleep_time,"echo",$cfile,$mfile);    
+    #print "$event_alert_name\n";
+    #print "$msgContent\n";
+    &dispatch($event_alert_name,$msgContent,$debug_flag,$sleep_time,"mailx",$cfile,$mfile);    
     	
 
     #return 0;
@@ -268,6 +295,7 @@ sub hash2print{
 sub dispatch{
 
         my $event= shift;
+        my $msgContent = shift;
         my $restTime = shift ||0;
         my $debug = shift||0;
         my $mail_prog = shift || $default_mail;
@@ -335,20 +363,42 @@ sub dispatch{
             print "$xemail1_cnt\n";
         }
 
-        my $mail1_cmd_str = $mail_prog." -s ".$event." ".$xemail1;
-        my $mail2_cmd_str = $mail_prog." -s ".$event." ".$xemail2;
-        my $mail3_cmd_str = $mail_prog." -s ".$event." ".$xemail3;
+
+	my $mail1_cmd_str;
+	my $mail2_cmd_str;
+	my $mail3_cmd_str;
+
+	#print "$event\n";
+	#print "$msgContent\n";
+
+	if  ( $event eq $msgContent){
+
+       	   $mail1_cmd_str = "echo ".$event."| ".$mail_prog." -s ".$event." ".$xemail1;
+           $mail2_cmd_str = "echo ".$event."| ".$mail_prog." -s ".$event." ".$xemail2;
+           $mail3_cmd_str = "echo ".$event."| ".$mail_prog." -s ".$event." ".$xemail3;
+
+        }else{
+
+           $mail1_cmd_str = "cat ".$msgContent."| ".$mail_prog." -s ".$event." ".$xemail1;
+           $mail2_cmd_str = "cat ".$msgContent."| ".$mail_prog." -s ".$event." ".$xemail2;
+           $mail3_cmd_str = "cat ".$msgContent."| ".$mail_prog." -s ".$event." ".$xemail3;
+
+	}
 
 
         if ($m2{$today_idx}{$event} >$xemail2_cnt){
 
+           #print "$mail3_cmd_str\n";
             system "$mail3_cmd_str";
 
         }elsif($m2{$today_idx}{$event} >$xemail1_cnt){
 
+           #print "$mail2_cmd_str\n";
             system "$mail2_cmd_str";
 
         }else{
+
+           #print "$mail1_cmd_str\n";
 
            system "$mail1_cmd_str";
 
